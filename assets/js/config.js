@@ -10,7 +10,7 @@ const SC_CONFIG = {
   SUPA_KEY: 'sb_publishable_-wDAA3WMgcrJSGA9B4Gciw_wOuM27pw',
 
   // URL del hub (para botones "volver al hub")
-  HUB_URL: 'https://stagecronohub.com',
+  HUB_URL: 'https://stage-crono-flow.lovable.app',
 
   // Política de acceso: si true, exige ?event=... y ?rider=... en index
   REQUIRE_HUB_ENTRY: true,
