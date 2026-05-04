@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Resultados — Stage Crono Gravity</title>
+<meta property="og:title" content="Resultados · Stage Crono">
+<meta property="og:description" content="Leaderboard oficial · Stage Crono Gravity">
+<meta property="og:image" content="./og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="./og-image.png">
+<meta name="theme-color" content="#080808">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<script src="./assets/js/config.js"></script>
+<script src="./assets/js/events.js"></script>
+<script src="./assets/js/utils.js"></script>
+
+<style>
+:root{
+  --bg:#080808;--dark:#111;--dark2:#1a1a1a;--border:#1e1e1e;
+  --green:#00ff41;--green-dim:rgba(0,255,65,.08);
+  --orange:#ff6b00;--yellow:#ffd600;
+  --white:#e8e8e8;--grey:#444;--grey2:#2a2a2a;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{background:var(--bg);color:var(--white);font-family:'Barlow Condensed',sans-serif;}
+body{min-height:100vh;max-width:480px;margin:0 auto;padding-bottom:40px;}
+
+#header{padding:20px 16px 0;border-bottom:1px solid var(--border);}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.hdr-logo{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:.06em;color:var(--white);}
+.hdr-logo span{color:var(--green);}
+.hdr-event{font-size:18px;color:var(--grey);}
+.hdr-live{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--grey);}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+#tabs{display:flex;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+#tabs::-webkit-scrollbar{display:none;}
+.tab{flex:1;min-width:max-content;padding:12px 16px;text-align:center;font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--grey);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;}
+.tab.active{color:var(--green);border-bottom-color:var(--green);}
+
+#filter-bar{padding:12px 16px;display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--border);}
+#search-input{flex:1;background:var(--dark2);border:1px solid var(--border);color:var(--white);font-family:'Barlow Condensed',sans-serif;font-size:15px;padding:8px 12px;outline:none;border-radius:2px;}
+#search-input::placeholder{color:var(--grey);}
+#search-input:focus{border-color:rgba(0,255,65,.3);}
+.filter-count{font-size:11px;color:var(--grey);white-space:nowrap;letter-spacing:.05em;}
+
+#board{padding:0 16px;}
+.board-empty{text-align:center;padding:60px 20px;color:var(--grey);font-size:14px;letter-spacing:.1em;}
+.board-empty .ico{font-size:40px;margin-bottom:12px;}
+
+.rider-row{display:flex;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);gap:12px;cursor:pointer;transition:background .15s;}
+.rider-row:last-child{border-bottom:none;}
+.rider-row:active{background:var(--green-dim);}
+
+.pos{font-family:'Bebas Neue',sans-serif;font-size:26px;width:36px;text-align:center;flex-shrink:0;line-height:1;}
+.pos.gold{color:var(--yellow);}
+.pos.silver{color:#bbb;}
+.pos.bronze{color:#cd7f32;}
+.pos.rest{color:var(--grey);}
+
+.rider-info{flex:1;min-width:0;}
+.rider-name{font-size:16px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rider-meta{font-size:10px;letter-spacing:.1em;color:var(--grey);text-transform:uppercase;margin-top:2px;}
+.badge-s1,.badge-s2{display:inline-block;padding:2px 6px;border-radius:2px;font-size:10px;letter-spacing:.05em;}
+.badge-s1{background:rgba(0,255,65,.1);color:var(--green);}
+.badge-s2{background:rgba(255,107,0,.1);color:var(--orange);}
+
+.rider-times{text-align:right;flex-shrink:0;}
+.time-main{font-family:'Bebas Neue',sans-serif;font-size:24px;line-height:1;}
+.time-main.gold{color:var(--yellow);text-shadow:0 0 12px rgba(255,214,0,.3);}
+.time-main.normal{color:var(--white);}
+.time-sub{font-size:10px;letter-spacing:.05em;color:var(--grey);margin-top:2px;}
+
+.podium-row{display:flex;align-items:center;padding:18px 14px;margin:0 -16px;gap:14px;border-bottom:1px solid var(--border);}
+.podium-row.p1{background:linear-gradient(90deg, rgba(255,214,0,.06) 0%, transparent 100%);border-left:3px solid var(--yellow);}
+.podium-row.p2{background:linear-gradient(90deg, rgba(187,187,187,.05) 0%, transparent 100%);border-left:3px solid #bbb;}
+.podium-row.p3{background:linear-gradient(90deg, rgba(205,127,50,.05) 0%, transparent 100%);border-left:3px solid #cd7f32;}
+
+.splits-detail{padding:8px 16px 12px 60px;background:var(--dark);font-size:11px;color:var(--grey);display:none;}
+.splits-detail.show{display:block;}
+.split-row{display:flex;justify-content:space-between;padding:4px 0;}
+.split-name{letter-spacing:.05em;}
+.split-lap{color:var(--white);font-family:'Bebas Neue',sans-serif;font-size:14px;}
+.split-accum{font-size:10px;color:var(--grey);}
+
+#share-btn{display:block;margin:20px auto;padding:12px 32px;background:transparent;border:1px solid var(--green);color:var(--green);font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:.2em;cursor:pointer;border-radius:2px;}
+#share-btn:hover{background:var(--green-dim);}
+
+#loading{padding:60px 0;display:flex;justify-content:center;}
+.loading-dots{display:flex;gap:8px;}
+.loading-dots span{width:6px;height:6px;border-radius:50%;background:var(--green);animation:ldot .8s infinite;}
+.loading-dots span:nth-child(2){animation-delay:.15s;}
+.loading-dots span:nth-child(3){animation-delay:.3s;}
+@keyframes ldot{0%,80%,100%{opacity:.2;}40%{opacity:1;}}
+
+#last-update{text-align:center;padding:16px;font-size:10px;color:var(--grey);letter-spacing:.1em;}
+
+.back-link{display:inline-block;padding:6px 12px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--grey);text-decoration:none;border:1px solid var(--border);border-radius:2px;margin:8px 16px;}
+.back-link:hover{color:var(--green);border-color:var(--green);}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="hdr-top">
+    <div class="hdr-logo">STAGE<span>CRONO</span> <span class="hdr-event" id="hdr-event">—</span></div>
+    <div class="hdr-live"><div class="live-dot"></div>EN VIVO</div>
+  </div>
+  <div id="tabs"></div>
+</div>
+
+<div id="filter-bar">
+  <input id="search-input" type="text" placeholder="Buscar rider..." oninput="filterBoard()">
+  <span class="filter-count" id="filter-count"></span>
+</div>
+
+<div id="loading">
+  <div class="loading-dots"><span></span><span></span><span></span></div>
+</div>
+
+<div id="board" style="display:none"></div>
+<div id="last-update"></div>
+<button id="share-btn" onclick="shareLeaderboard()">📤 COMPARTIR</button>
+<a class="back-link" href="" id="back-stages">← Volver a stages</a>
+
+<script>
+'use strict';
+
+// ── Lectura del evento ──
+const _eventSlug = getEventFromUrl();
+const _eventCfg = getEvent(_eventSlug);
+
+if (!_eventSlug || !_eventCfg) {
+  window.location.replace('./index.html');
+}
+
+// ── Header ──
+document.getElementById('hdr-event').textContent = _eventCfg.nombreCorto;
+document.getElementById('back-stages').href = `./index.html?event=${_eventSlug}`;
+
+// ── Construir tabs dinámicamente según los stages del evento ──
+const tabs = [];
+if (_eventCfg.modalidad === 'enduro' && _eventCfg.stages.length > 1) {
+  tabs.push({ key: 'camp', label: '🏆 Ranking' });
+}
+_eventCfg.stages.forEach(stg => {
+  tabs.push({ key: `s${stg.numero}`, label: stg.nombre, stageNum: stg.numero });
+});
+
+const tabsContainer = document.getElementById('tabs');
+tabs.forEach((t, i) => {
+  const div = document.createElement('div');
+  div.className = 'tab' + (i === 0 ? ' active' : '');
+  div.dataset.tab = t.key;
+  div.textContent = t.label;
+  div.onclick = function () { switchTab(div); };
+  tabsContainer.appendChild(div);
+});
+
+let currentTab = tabs[0].key;
+const allData = {};
+tabs.forEach(t => { allData[t.key] = []; });
+
+function fmtDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('es-CL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+
+// ── Fetch ──
+async function fetchData() {
+  const headers = { 'apikey': SC_CONFIG.SUPA_KEY, 'Authorization': `Bearer ${SC_CONFIG.SUPA_KEY}` };
+  const queries = [];
+
+  // Ranking de campeonato (suma de stages) si aplica
+  if (_eventCfg.modalidad === 'enduro' && _eventCfg.stages.length > 1) {
+    queries.push({
+      key: 'camp',
+      url: `${SC_CONFIG.SUPA_URL}/rest/v1/campeonato?evento=eq.${_eventSlug}&order=tiempo_total.asc`,
+    });
+  }
+
+  // Mejores tiempos por stage
+  _eventCfg.stages.forEach(stg => {
+    queries.push({
+      key: `s${stg.numero}`,
+      url: `${SC_CONFIG.SUPA_URL}/rest/v1/mejores_tiempos?evento=eq.${_eventSlug}&stage=eq.${stg.numero}&order=tiempo_ms.asc`,
+    });
+  });
+
+  const results = await Promise.allSettled(
+    queries.map(q => fetch(q.url, { headers }).then(r => r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`)))
+  );
+
+  const failed = [];
+  results.forEach((r, i) => {
+    if (r.status === 'fulfilled') {
+      allData[queries[i].key] = r.value;
+    } else {
+      failed.push(queries[i].key);
+    }
+  });
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('board').style.display = 'block';
+
+  const ts = new Date().toLocaleTimeString('es-CL');
+  const upd = document.getElementById('last-update');
+  if (failed.length === queries.length) {
+    upd.innerHTML = `<span style="color:var(--orange)">⚠️ Sin conexión · ${ts}</span>`;
+  } else if (failed.length > 0) {
+    upd.innerHTML = `<span style="color:var(--orange)">⚠️ ${failed.join(', ')} no disponible</span> · ${ts}`;
+  } else {
+    upd.textContent = `Actualizado: ${ts}`;
+  }
+
+  renderBoard();
+}
+
+function switchTab(el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentTab = el.dataset.tab;
+  document.getElementById('search-input').value = '';
+  renderBoard();
+}
+
+function renderBoard() {
+  const data = allData[currentTab] || [];
+  const q = document.getElementById('search-input').value.toLowerCase().trim();
+  const filtered = q ? data.filter(r => (r.nombre || '').toLowerCase().includes(q)) : data;
+  document.getElementById('filter-count').textContent = `${filtered.length} rider${filtered.length !== 1 ? 's' : ''}`;
+
+  const board = document.getElementById('board');
+  if (filtered.length === 0) {
+    board.innerHTML = `<div class="board-empty"><div class="ico">🏁</div>Sin resultados aún.<br>¡Sé el primero en completar!</div>`;
+    return;
+  }
+
+  board.innerHTML = '';
+  filtered.forEach((r, i) => {
+    const pos = i + 1;
+    const posClass = pos === 1 ? 'gold' : pos === 2 ? 'silver' : pos === 3 ? 'bronze' : 'rest';
+    const isPodium = pos <= 3;
+    const timeClass = pos === 1 ? 'gold' : 'normal';
+
+    if (currentTab === 'camp') {
+      renderCampRow(board, r, pos, posClass, isPodium, timeClass);
+    } else {
+      renderStageRow(board, r, pos, posClass, isPodium, timeClass);
+    }
+  });
+}
+
+function renderCampRow(board, r, pos, posClass, isPodium, timeClass) {
+  const div = document.createElement('div');
+  div.className = isPodium ? `podium-row p${pos}` : 'rider-row';
+
+  // Construir badges genéricamente para todos los stages del evento
+  const stageBadges = _eventCfg.stages.map((stg, idx) => {
+    const tField = `tiempo_stage${stg.numero}`;
+    const cls = idx === 0 ? 'badge-s1' : 'badge-s2';
+    return `<span class="${cls}">S${stg.numero} ${fmt(r[tField])}</span>`;
+  }).join('&nbsp;');
+
+  div.innerHTML = `
+    <div class="pos ${posClass}">${pos}</div>
+    <div class="rider-info">
+      <div class="rider-name">${r.nombre || 'Anónimo'}</div>
+      <div class="rider-meta">${stageBadges}</div>
+    </div>
+    <div class="rider-times">
+      <div class="time-main ${timeClass}">${fmt(r.tiempo_total)}</div>
+      <div class="time-sub">${fmtDate(r.fecha)}</div>
+    </div>`;
+  board.appendChild(div);
+}
+
+function renderStageRow(board, r, pos, posClass, isPodium, timeClass) {
+  const id = `splits-${currentTab}-${pos}`;
+  const div = document.createElement('div');
+  div.className = isPodium ? `podium-row p${pos}` : 'rider-row';
+  div.onclick = () => toggleSplits(id);
+  div.innerHTML = `
+    <div class="pos ${posClass}">${pos}</div>
+    <div class="rider-info">
+      <div class="rider-name">${r.nombre || 'Anónimo'}</div>
+      <div class="rider-meta">${fmtDate(r.fecha)}</div>
+    </div>
+    <div class="rider-times">
+      <div class="time-main ${timeClass}">${fmt(r.tiempo_ms)}</div>
+      <div class="time-sub">ver splits ↓</div>
+    </div>`;
+  board.appendChild(div);
+
+  const splits = r.splits || [];
+  if (splits.length > 0) {
+    const detail = document.createElement('div');
+    detail.className = 'splits-detail';
+    detail.id = id;
+    splits.forEach((s, si) => {
+      const isLast = si === splits.length - 1;
+      detail.innerHTML += `<div class="split-row">
+        <span class="split-name">${isLast ? 'Llegada' : 'Parcial ' + (si + 1)}</span>
+        <div style="text-align:right">
+          <div class="split-lap">${fmt(s.lap)}</div>
+          <div class="split-accum">acum ${fmt(s.elapsed)}</div>
+        </div>
+      </div>`;
+    });
+    board.appendChild(detail);
+  }
+}
+
+function toggleSplits(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('show');
+}
+
+function filterBoard() { renderBoard(); }
+
+function shareLeaderboard() {
+  const tabObj = tabs.find(t => t.key === currentTab);
+  const tabLabel = tabObj ? tabObj.label : currentTab;
+  const url = `${window.location.origin}${window.location.pathname}?event=${_eventSlug}&tab=${currentTab}`;
+  const txt = `🏆 Leaderboard ${tabLabel} — ${_eventCfg.nombre}\n${url}`;
+  if (navigator.share) navigator.share({ title: `${_eventCfg.nombre} · ${tabLabel}`, text: txt, url }).catch(() => {});
+  else navigator.clipboard.writeText(url).then(() => alert('Link copiado'));
+}
+
+// ── Deep link a tab por URL ──
+const urlTab = getUrlParam('tab');
+if (urlTab && tabs.find(t => t.key === urlTab)) {
+  currentTab = urlTab;
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === urlTab);
+  });
+}
+
+// ── Auto refresh cada 30s ──
+fetchData();
+setInterval(fetchData, 30000);
+</script>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Stage Crono · Gravity</title>
+<meta property="og:title" content="Stage Crono · Gravity">
+<meta property="og:description" content="Cronometraje GPS para enduro y descenso. Acceso desde Stage Crono Hub.">
+<meta property="og:image" content="./og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="./og-image.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#080808">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<link rel="manifest" href="./manifest.json">
+<style>
+:root{
+  --bg:#080808;--dark:#111;--dark2:#1a1a1a;--border:#222;
+  --green:#00ff41;--orange:#ff6b00;--yellow:#ffd600;--red:#ff2222;
+  --white:#e8e8e8;--grey:#555;--grey2:#333;
+  --accent:#00ff41;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{min-height:100%;background:var(--bg);}
+body{font-family:'Barlow Condensed',sans-serif;color:var(--white);padding:24px 18px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;}
+
+.brand{font-family:'Bebas Neue',sans-serif;font-size:38px;line-height:1;letter-spacing:.04em;text-align:center;margin-bottom:6px;}
+.brand span{color:var(--accent);}
+.brand-sub{font-size:10px;letter-spacing:.35em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:30px;text-align:center;}
+
+/* CARD: bloqueo / pantalla de stage / pantalla de evento */
+.card{background:var(--dark);border:1px solid var(--border);border-radius:3px;padding:22px 18px;width:100%;max-width:420px;}
+
+/* Estado: bloqueado (sin params) */
+.lock-icon{font-size:42px;text-align:center;margin-bottom:12px;}
+.lock-title{font-family:'Bebas Neue',sans-serif;font-size:22px;text-align:center;letter-spacing:.05em;color:var(--yellow);margin-bottom:8px;}
+.lock-desc{font-size:13px;line-height:1.6;color:rgba(255,255,255,.65);text-align:center;margin-bottom:20px;}
+.lock-cta{display:block;width:100%;background:var(--accent);color:#000;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:.1em;padding:14px;text-align:center;text-decoration:none;border:none;cursor:pointer;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));}
+
+/* Estado: evento + selección de stage */
+.event-tag{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;}
+.event-name{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:.04em;line-height:1;margin-bottom:4px;}
+.event-zone{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--grey);margin-bottom:4px;}
+.rider-greet{font-size:13px;color:rgba(255,255,255,.7);margin:14px 0 8px;letter-spacing:.05em;}
+.rider-name{color:var(--accent);font-weight:700;}
+.event-desc{font-size:12px;line-height:1.6;color:rgba(255,255,255,.55);margin-bottom:18px;}
+
+.section-label{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--grey);margin:18px 0 10px;}
+
+.stage-card{background:var(--dark2);border:1px solid var(--border);border-radius:2px;padding:14px;margin-bottom:8px;cursor:pointer;transition:border-color .2s;display:block;text-decoration:none;color:inherit;}
+.stage-card:hover{border-color:var(--accent);}
+.stage-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px;}
+.stage-name{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:.04em;}
+.stage-zone{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--grey);margin-top:1px;}
+.stage-num{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--accent);opacity:.7;}
+.stage-stats{display:flex;gap:12px;margin-bottom:10px;}
+.stat{flex:1;text-align:center;padding:6px 4px;background:rgba(0,0,0,.25);border-radius:2px;}
+.stat-val{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--white);}
+.stat-lbl{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--grey);}
+.stage-cta{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--border);}
+.stage-btn{background:var(--accent);color:#000;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:.1em;padding:7px 12px;border:none;border-radius:2px;cursor:pointer;}
+.stage-status{font-size:10px;letter-spacing:.15em;color:var(--green);}
+
+/* Nota previa al cronómetro */
+.pre-note{background:rgba(255,214,0,.05);border:1px solid rgba(255,214,0,.2);border-radius:2px;padding:11px 13px;margin-bottom:14px;font-size:11px;line-height:1.6;color:rgba(255,214,0,.85);}
+.pre-note b{color:var(--yellow);}
+
+/* Footer / vuelta al hub */
+.hub-link{display:inline-block;margin-top:20px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--grey);text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:2px;}
+.hub-link:hover{color:var(--accent);border-color:var(--accent);}
+
+/* PWA install hint */
+.pwa-hint{margin-top:18px;font-size:10px;letter-spacing:.15em;color:var(--grey2);text-align:center;}
+</style>
+</head>
+<body>
+
+<div class="brand">STAGE<span>CRONO</span></div>
+<div class="brand-sub">— GRAVITY —</div>
+
+<!-- Container que se renderiza dinámicamente según los params -->
+<div id="container"></div>
+
+<a href="" id="hub-link" class="hub-link">← Stage Crono Hub</a>
+
+<script src="./assets/js/config.js"></script>
+<script src="./assets/js/events.js"></script>
+<script src="./assets/js/session.js"></script>
+<script src="./assets/js/utils.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  document.getElementById('hub-link').href = SC_CONFIG.HUB_URL;
+
+  const container = document.getElementById('container');
+  const eventSlug = getEventFromUrl();
+  const riderFromUrl = getRiderFromUrl();
+
+  // ── PASO 1: si vino rider en la URL, lo guardamos en sesión ─
+  if (riderFromUrl) {
+    GravitasSession.setPilot(riderFromUrl);
+  }
+
+  // ── PASO 2: si no hay evento en la URL, mostramos pantalla de
+  // bloqueo (acceso solo desde el hub) ────────────────────────
+  if (!eventSlug) {
+    if (SC_CONFIG.REQUIRE_HUB_ENTRY) {
+      renderLocked();
+      return;
+    }
+  }
+
+  // ── PASO 3: si el evento no existe en el catálogo ───────────
+  const ev = getEvent(eventSlug);
+  if (!ev) {
+    renderUnknownEvent(eventSlug);
+    return;
+  }
+
+  // ── PASO 4: pantalla del evento con sus stages ──────────────
+  renderEvent(ev);
+
+  // ════════════════════════════════════════════════════════════
+  // RENDERS
+  // ════════════════════════════════════════════════════════════
+  function renderLocked() {
+    container.innerHTML = `
+      <div class="card">
+        <div class="lock-icon">🔒</div>
+        <div class="lock-title">Acceso por Stage Crono Hub</div>
+        <div class="lock-desc">
+          Esta página es el cronómetro. Para correr un stage,
+          ingresá desde Stage Crono Hub. Allí elegís el evento
+          y desde ahí se abre el cronómetro automáticamente.
+        </div>
+        <a class="lock-cta" href="${SC_CONFIG.HUB_URL}">IR AL HUB →</a>
+      </div>
+    `;
+  }
+
+  function renderUnknownEvent(slug) {
+    container.innerHTML = `
+      <div class="card">
+        <div class="lock-icon">⚠️</div>
+        <div class="lock-title">Evento desconocido</div>
+        <div class="lock-desc">
+          El evento <b>"${slug}"</b> no existe en este sistema.
+          Volvé al hub y elegí un evento del catálogo.
+        </div>
+        <a class="lock-cta" href="${SC_CONFIG.HUB_URL}">IR AL HUB →</a>
+      </div>
+    `;
+  }
+
+  function renderEvent(ev) {
+    const pilot = GravitasSession.getPilot();
+
+    // ── Saludo personalizado ──
+    const greet = pilot
+      ? `<div class="rider-greet">Hola, <span class="rider-name">${escapeHtml(pilot)}</span> 👋</div>`
+      : '';
+
+    // ── Stages cards ──
+    const stagesHtml = ev.stages.map(stage => {
+      const saved = GravitasSession.getTime(ev.slug, stage.numero);
+      const statusHtml = saved
+        ? `<span class="stage-status">✓ ${fmt(saved.ms)}</span>`
+        : `<span class="stage-status" style="color:var(--grey)">— sin tiempo</span>`;
+      const parcialesStat = stage.parciales > 0
+        ? `<div class="stat"><div class="stat-val">${stage.parciales}</div><div class="stat-lbl">Parciales</div></div>`
+        : `<div class="stat"><div class="stat-val">DH</div><div class="stat-lbl">Modalidad</div></div>`;
+      return `
+        <a class="stage-card" href="./crono.html?event=${ev.slug}&stage=${stage.numero}">
+          <div class="stage-header">
+            <div>
+              <div class="stage-name">${escapeHtml(stage.nombre.toUpperCase())}</div>
+              <div class="stage-zone">${escapeHtml(stage.zona)}</div>
+            </div>
+            <div class="stage-num">${String(stage.numero).padStart(2, '0')}</div>
+          </div>
+          <div class="stage-stats">
+            <div class="stat"><div class="stat-val">${stage.distancia}</div><div class="stat-lbl">km</div></div>
+            ${parcialesStat}
+            <div class="stat"><div class="stat-val">${stage.desnivel}m</div><div class="stat-lbl">Desnivel</div></div>
+            <div class="stat"><div class="stat-val">${stage.modalidad}</div><div class="stat-lbl">Tipo</div></div>
+          </div>
+          <div class="stage-cta">
+            <button class="stage-btn">▶ INICIAR</button>
+            ${statusHtml}
+          </div>
+        </a>
+      `;
+    }).join('');
+
+    // ── Tarjeta de ranking del evento (suma de stages) si aplica
+    let campHtml = '';
+    if (ev.modalidad === 'enduro' && ev.stages.length > 1) {
+      const total = GravitasSession.getEventTotal(ev.slug);
+      if (total) {
+        campHtml = `
+          <div class="pre-note" style="background:rgba(255,214,0,.06);border-color:rgba(255,214,0,.3);">
+            <b>🏆 Tu tiempo total del evento:</b> ${fmt(total)}<br>
+            <span style="color:rgba(255,214,0,.7)">Suma de tus mejores tiempos en los ${ev.stages.length} stages.</span>
+          </div>
+        `;
+      } else {
+        campHtml = `
+          <div class="pre-note">
+            <b>Modalidad enduro:</b> tu tiempo final es la suma de los ${ev.stages.length} stages. Completalos para entrar al ranking general.
+          </div>
+        `;
+      }
+    }
+
+    container.innerHTML = `
+      <div class="card">
+        <div class="event-tag">EVENTO</div>
+        <div class="event-name">${escapeHtml(ev.nombreCorto)}</div>
+        <div class="event-zone">${escapeHtml(ev.zona)}</div>
+        ${greet}
+        <div class="event-desc">${escapeHtml(ev.descripcion)}</div>
+        ${campHtml}
+        <div class="section-label">${ev.stages.length > 1 ? 'Elige tu stage' : 'Tu stage'}</div>
+        ${stagesHtml}
+      </div>
+    `;
+  }
+
+  function escapeHtml(str) {
+    return String(str || '').replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(e => console.log(e));
+  });
+}
+</script>
+</body>
+</html>
