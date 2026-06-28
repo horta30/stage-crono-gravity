@@ -56,7 +56,7 @@ const SC_EVENTS = {
     stages: [
       {
         numero: 1,
-        nombre: 'DH La Canela',
+        nombre: 'DH Puchuncaví',
         zona: 'Puchuncaví · V Región',
         distancia: 2.57,
         desnivel: 464,
