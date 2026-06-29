@@ -1,12 +1,12 @@
 // ══════════════════════════════════════════════════════
 // STAGE CRONO PUCHUNCAVÍ — seg01.js
-// Stage 1 · DH La Canela
+// Stage 1 · DH Puchuncaví
 // Sentido: INICIO (alto) → 1 → 2 → 3 → FIN (bajo)
 // 2.57 km · descenso 464 m (651 → 190 m)
 // ══════════════════════════════════════════════════════
 const CT = {
   meta: {
-    nombre:      'DH La Canela',
+    nombre:      'DH Puchuncaví',
     zona:        'Puchuncaví · V Región',
     distancia:   2.57,
     radio:       45,
