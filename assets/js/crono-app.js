@@ -43,6 +43,13 @@ const _accentColor = CT.meta.color || '#00ff41';
 document.documentElement.style.setProperty('--accent', _accentColor);
 
 document.getElementById('splash-back').href = `./index.html?event=${_eventSlug}`;
+
+// Pantalla locked: mostrar solo si hay stagingWP, sino ocultar de entrada
+if (!stagingWP) {
+  document.getElementById('locked-screen').classList.add('hidden');
+} else {
+  document.getElementById('lk-stage-name').textContent = CT.meta.nombre.toUpperCase();
+}
 document.getElementById('back-btn').href = `./index.html?event=${_eventSlug}`;
 document.getElementById('rs-rider').textContent = _nombre ? _nombre.toUpperCase() : 'PILOTO';
 
@@ -289,16 +296,14 @@ window.initGPS = function () {
   SC_GPS.start(onPos, onPosErr);
 };
 
-// GPS arranca automáticamente al cargar la página.
-// Audio se desbloquea en el primer tap del usuario sobre el mapa.
+// GPS arranca automáticamente. Audio se desbloquea aquí
+// (el tap en index.html lleva el gesto de usuario a esta página).
 (function autoStart() {
   if (!SC_GPS.isAvailable()) return;
+  SC_Audio.unlock();
+  SC_WakeLock.request();
   document.getElementById('gps-dot').className = 'gps-dot searching';
   SC_GPS.start(onPos, onPosErr);
-  SC_WakeLock.request();
-  document.getElementById('map').addEventListener('click', function unlockAudio() {
-    SC_Audio.unlock();
-  }, { once: true });
 })();
 
 window.toggleGPS = function () {
@@ -338,18 +343,31 @@ function onPos(c) {
     if (stagingWP) {
       S.phase = 'locked';
       document.getElementById('chrono-label').textContent = 'Dirígete al PUNTO 0 🚵';
+      document.getElementById('lk-gps-note').textContent = '● GPS conectado';
       const msg = _nombre
-        ? `Atención ${_nombre}. Primero dirígete al Punto cero marcado en el mapa. El cronómetro se armará desde ahí.`
-        : 'Atención. Primero dirígete al Punto cero marcado en el mapa. El cronómetro se armará desde ahí.';
-      setTimeout(() => SC_Audio.speak(msg, true), 700);
+        ? `Atención ${_nombre}. Dirígete al Punto cero. El cronómetro se armará cuando llegues.`
+        : 'Atención. Dirígete al Punto cero. El cronómetro se armará cuando llegues.';
+      setTimeout(() => SC_Audio.speak(msg, true), 400);
     } else {
       S.phase = 'waiting';
+      document.getElementById('locked-screen').classList.add('hidden');
       document.getElementById('chrono-label').textContent = 'Dirígete al INICIO';
       const msg = _nombre
         ? `Atención ${_nombre}. Cronómetro activa al pasar el inicio. Pasa en movimiento.`
         : 'Atención. Cronómetro activa al pasar el inicio. Pasa en movimiento.';
-      setTimeout(() => SC_Audio.speak(msg, true), 700);
+      setTimeout(() => SC_Audio.speak(msg, true), 400);
     }
+  }
+
+  // Actualizar flecha grande del locked-screen
+  if (S.phase === 'locked' && stagingWP) {
+    const dLk = distM(lat, lon, stagingWP.lat, stagingWP.lon);
+    document.getElementById('lk-dist').textContent = dLk > 1000
+      ? (dLk / 1000).toFixed(1) + ' km'
+      : Math.round(dLk) + ' m';
+    const bLk = bearingTo(lat, lon, stagingWP.lat, stagingWP.lon);
+    const relLk = ((bLk - lastBearing) + 360) % 360;
+    document.getElementById('lk-arrow').style.transform = `rotate(${relLk}deg)`;
   }
 
   if (!userMarker) {
@@ -416,6 +434,7 @@ function processPos(lat, lon) {
     if (d <= stagingWP.radio && !S.stagingDone) {
       S.stagingDone = true;
       S.phase = 'waiting';
+      document.getElementById('locked-screen').classList.add('hidden');
       document.getElementById('chrono-label').textContent = 'Dirígete al INICIO';
       const msg = _nombre
         ? `¡Listo ${_nombre}! Cronómetro armado. Ahora pasa el inicio en movimiento.`
@@ -740,6 +759,7 @@ window.resetSession = function () {
   document.getElementById('reset-btn').style.display = 'none';
   document.getElementById('result-screen').classList.remove('show');
   document.getElementById('toast').classList.remove('show');
+  if (stagingWP) document.getElementById('locked-screen').classList.remove('hidden');
   document.querySelectorAll('.split-col').forEach(el => {
     el.classList.remove('done', 'next');
     el.querySelector('.sc-time').textContent = '-:--';
@@ -768,6 +788,7 @@ window.cancelRun = function () {
   document.getElementById('chrono-label').textContent = stagingWP ? 'Dirígete al PUNTO 0 🚵' : 'Dirígete al INICIO';
   document.getElementById('reset-btn').style.display = 'none';
   document.getElementById('toast').classList.remove('show');
+  if (stagingWP) document.getElementById('locked-screen').classList.remove('hidden');
   document.querySelectorAll('.split-col').forEach(el => {
     el.classList.remove('done', 'next');
     el.querySelector('.sc-time').textContent = '-:--';

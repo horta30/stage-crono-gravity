@@ -205,20 +205,36 @@ body{display:flex;flex-direction:column;font-family:'Barlow Condensed',sans-seri
 #north-needle{transition:transform .25s ease;}
 #ic-arrow{font-size:16px;display:inline-block;transition:transform .3s ease;line-height:1;}
 
+/* LOCKED SCREEN — navegación al Punto 0 */
+#locked-screen{position:fixed;inset:0;z-index:1500;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;gap:8px;transition:opacity .5s,visibility .5s;}
+#locked-screen.hidden{opacity:0;visibility:hidden;pointer-events:none;}
+.lk-stage{font-size:11px;letter-spacing:.35em;text-transform:uppercase;color:var(--accent);margin-bottom:4px;}
+.lk-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(36px,10vw,56px);color:#ffd600;letter-spacing:.06em;line-height:1;}
+.lk-sub{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:16px;}
+.lk-arrow-wrap{width:160px;height:160px;border-radius:50%;background:rgba(255,214,0,.06);border:2px solid rgba(255,214,0,.2);display:flex;align-items:center;justify-content:center;margin:8px 0;}
+.lk-arrow{font-size:96px;line-height:1;display:inline-block;transition:transform .4s ease;color:#ffd600;}
+.lk-dist{font-family:'Bebas Neue',sans-serif;font-size:42px;color:var(--white);letter-spacing:.04em;margin-top:8px;}
+.lk-gps-note{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.25);}
+
 .leaflet-control-zoom,.leaflet-control-attribution{display:none;}
 @keyframes uPulse{0%,100%{transform:scale(1);opacity:.6;}50%{transform:scale(2.4);opacity:0;}}
 </style>
 </head>
 <body>
 
-<!-- splash eliminado: GPS arranca automáticamente al cargar -->
-<div id="splash" style="display:none">
-  <canvas id="splash-canvas"></canvas>
-  <div class="splash-inner">
-    <div class="splash-stage-badge" id="splash-stage-badge">STAGE 1</div>
-    <div class="splash-logo"><span id="splash-stage-name"></span></div>
-    <a class="splash-back" id="splash-back" href="./index.html">← Volver a stages</a>
+<!-- splash eliminado -->
+<div id="splash" style="display:none"><canvas id="splash-canvas"></canvas></div>
+
+<!-- PANTALLA DE NAVEGACIÓN AL PUNTO 0 (fase locked) -->
+<div id="locked-screen">
+  <div class="lk-stage" id="lk-stage-name">DH PUCHUNCAVÍ</div>
+  <div class="lk-title">PUNTO 0</div>
+  <div class="lk-sub">Dirígete aquí antes de iniciar</div>
+  <div class="lk-arrow-wrap">
+    <div class="lk-arrow" id="lk-arrow">↑</div>
   </div>
+  <div class="lk-dist" id="lk-dist">Buscando GPS…</div>
+  <div class="lk-gps-note" id="lk-gps-note">● Conectando</div>
 </div>
 
 <!-- ── TOPBAR ─────────────────────────────────────────────── -->
