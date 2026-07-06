@@ -42,11 +42,6 @@ const _accentColor = CT.meta.color || '#00ff41';
 // Aplicar color de acento del stage
 document.documentElement.style.setProperty('--accent', _accentColor);
 
-// Splash UI
-document.getElementById('splash-stage-badge').textContent = `STAGE ${CT.meta.stage}`;
-document.getElementById('splash-stage-name').textContent = CT.meta.nombre.toUpperCase();
-if (_nombre) document.getElementById('splash-name').textContent = _nombre.toUpperCase();
-document.getElementById('splash-zone').textContent = CT.meta.zona;
 document.getElementById('splash-back').href = `./index.html?event=${_eventSlug}`;
 document.getElementById('back-btn').href = `./index.html?event=${_eventSlug}`;
 document.getElementById('rs-rider').textContent = _nombre ? _nombre.toUpperCase() : 'PILOTO';
