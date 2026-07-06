@@ -93,7 +93,7 @@ const lmap = L.map('leaflet-map', {
   touchRotate: true,
   rotateControl: false,
 });
-let currentTile = L.tileLayer(TILES.topo, { maxZoom: 19 }).addTo(lmap);
+let currentTile = L.tileLayer(TILES.satellite, { maxZoom: 19, maxNativeZoom: 19 }).addTo(lmap);
 L.polyline(CT.track, { color: 'rgba(0,255,65,.1)', weight: 20 }).addTo(lmap);
 const routeLine = L.polyline(CT.track, { color: _accentColor, weight: 3.5, opacity: .9 }).addTo(lmap);
 const doneLine = L.polyline([CT.track[0]], { color: 'rgba(255,255,255,.35)', weight: 5 }).addTo(lmap);
@@ -125,11 +125,16 @@ if (stagingWP) {
 }
 lmap.fitBounds(L.latLngBounds(CT.track), { padding: [40, 40] });
 
+const TILE_OPTS = {
+  topo:      { maxZoom: 19, maxNativeZoom: 17 },
+  satellite: { maxZoom: 19, maxNativeZoom: 19 },
+  osm:       { maxZoom: 19, maxNativeZoom: 19 },
+};
 window.setStyle = function (btn) {
   document.querySelectorAll('.sbtn').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
   lmap.removeLayer(currentTile);
-  currentTile = L.tileLayer(TILES[btn.dataset.l], { maxZoom: 19 }).addTo(lmap);
+  currentTile = L.tileLayer(TILES[btn.dataset.l], TILE_OPTS[btn.dataset.l]).addTo(lmap);
   routeLine.bringToFront();
   doneLine.bringToFront();
 };
