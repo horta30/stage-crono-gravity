@@ -58,10 +58,14 @@ stageTag.style.background = `${_accentColor}18`;
 stageTag.style.color = _accentColor;
 stageTag.style.border = `1px solid ${_accentColor}40`;
 
-// Construir barra de splits dinámicamente según los waypoints
+// Separar waypoint de staging (punto 0) del resto (cronometraje)
+const stagingWP = CT.waypoints.find(wp => wp.type === 'staging') || null;
+const cronoWPs  = CT.waypoints.filter(wp => wp.type !== 'staging');
+
+// Construir barra de splits solo con waypoints de cronometraje
 (function buildSplitsBar() {
   const bar = document.getElementById('splits-bar');
-  CT.waypoints.forEach((wp, i) => {
+  cronoWPs.forEach((wp, i) => {
     const div = document.createElement('div');
     div.className = 'split-col' + (wp.type === 'finish' ? ' finish' : '');
     div.id = `sc-${i}`;
@@ -81,7 +85,7 @@ const TILES = {
   osm: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 };
 const lmap = L.map('leaflet-map', {
-  center: [CT.waypoints[0].lat, CT.waypoints[0].lon],
+  center: [cronoWPs[0].lat, cronoWPs[0].lon],
   zoom: 15,
   zoomControl: false,
   attributionControl: false,
@@ -94,7 +98,8 @@ L.polyline(CT.track, { color: 'rgba(0,255,65,.1)', weight: 20 }).addTo(lmap);
 const routeLine = L.polyline(CT.track, { color: _accentColor, weight: 3.5, opacity: .9 }).addTo(lmap);
 const doneLine = L.polyline([CT.track[0]], { color: 'rgba(255,255,255,.35)', weight: 5 }).addTo(lmap);
 
-CT.waypoints.forEach(wp => {
+// Dibujar marcadores de cronometraje (sin staging)
+cronoWPs.forEach(wp => {
   const col = wp.color;
   const label = wp.type === 'start' ? 'S' : wp.type === 'finish' ? 'F' : wp.id;
   const icon = L.divIcon({
@@ -105,6 +110,19 @@ CT.waypoints.forEach(wp => {
   });
   L.marker([wp.lat, wp.lon], { icon, zIndexOffset: 500 }).addTo(lmap);
 });
+
+// Dibujar PUNTO 0 (staging) con ícono especial amarillo
+if (stagingWP) {
+  const icon0 = L.divIcon({
+    className: '',
+    html: `<div style="width:32px;height:32px;background:#ffd600;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 12px #ffd60088;border:2px solid #000;"><span style="font-size:14px;">🚵</span></div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+  });
+  L.marker([stagingWP.lat, stagingWP.lon], { icon: icon0, zIndexOffset: 600 })
+    .bindPopup('<b>PUNTO 0</b><br>Ubícate aquí y entra en movimiento hacia INICIO')
+    .addTo(lmap);
+}
 lmap.fitBounds(L.latLngBounds(CT.track), { padding: [40, 40] });
 
 window.setStyle = function (btn) {
@@ -224,7 +242,7 @@ function makeUserIcon() {
 // 4. ESTADO DEL CRONÓMETRO
 // ════════════════════════════════════════════════════════════
 
-const SEQ = CT.waypoints.map((_, i) => i); // [0, 1, 2, ..., n]
+const SEQ = cronoWPs.map((_, i) => i); // [0, 1, 2, ..., n] sobre cronoWPs
 const S = {
   phase: 'init', // 'init' | 'waiting' | 'running' | 'finished'
   seqIdx: 0,
@@ -303,12 +321,20 @@ function onPos(c) {
     firstFix = false;
     document.getElementById('splash').classList.add('hidden');
     S.phase = 'waiting';
-    document.getElementById('chrono-label').textContent = 'Dirígete al INICIO';
     lmap.setView([lat, lon], 16);
-    const msg = _nombre
-      ? `Atención ${_nombre}. Cronómetro activa al pasar el inicio. Pasa en movimiento.`
-      : 'Atención. Cronómetro activa al pasar el inicio. Pasa en movimiento.';
-    setTimeout(() => SC_Audio.speak(msg, true), 700);
+    if (stagingWP) {
+      document.getElementById('chrono-label').textContent = 'Dirígete al PUNTO 0 🚵';
+      const msg = _nombre
+        ? `Atención ${_nombre}. Dirígete al Punto cero marcado en el mapa. Desde ahí entra en movimiento hacia el inicio.`
+        : 'Atención. Dirígete al Punto cero marcado en el mapa. Desde ahí entra en movimiento hacia el inicio.';
+      setTimeout(() => SC_Audio.speak(msg, true), 700);
+    } else {
+      document.getElementById('chrono-label').textContent = 'Dirígete al INICIO';
+      const msg = _nombre
+        ? `Atención ${_nombre}. Cronómetro activa al pasar el inicio. Pasa en movimiento.`
+        : 'Atención. Cronómetro activa al pasar el inicio. Pasa en movimiento.';
+      setTimeout(() => SC_Audio.speak(msg, true), 700);
+    }
   }
 
   if (!userMarker) {
@@ -322,11 +348,13 @@ function onPos(c) {
   else document.getElementById('compass-needle').style.transform = `rotate(${lastBearing}deg)`;
   if (followMode) lmap.panTo([lat, lon], { animate: true, duration: .25, easeLinearity: 1 });
 
-  // Brújula al inicio (solo en fase waiting)
+  // Brújula: apunta al PUNTO 0 si existe y está lejos, luego al INICIO
   if (S.phase === 'waiting' || S.phase === 'init') {
     const compass = document.getElementById('inicio-compass');
     compass.classList.add('show');
-    const b = bearingTo(lat, lon, CT.waypoints[0].lat, CT.waypoints[0].lon);
+    const target = (stagingWP && distM(lat, lon, stagingWP.lat, stagingWP.lon) > stagingWP.radio)
+      ? stagingWP : cronoWPs[0];
+    const b = bearingTo(lat, lon, target.lat, target.lon);
     const rel = ((b - lastBearing) + 360) % 360;
     document.getElementById('ic-arrow').style.transform = `rotate(${rel}deg)`;
   } else {
@@ -367,7 +395,7 @@ function processPos(lat, lon) {
 
   // Fase WAITING: esperando que el rider cruce el INICIO
   if (S.phase === 'waiting') {
-    const wp0 = CT.waypoints[0];
+    const wp0 = cronoWPs[0];
     const d = distM(lat, lon, wp0.lat, wp0.lon);
     if (d <= 300) {
       document.getElementById('prox-ring').style.display = 'block';
@@ -392,7 +420,7 @@ function processPos(lat, lon) {
   // Fase RUNNING: rider corriendo entre waypoints
   if (S.phase === 'running') {
     if (S.seqIdx >= SEQ.length) return;
-    const wp = CT.waypoints[SEQ[S.seqIdx]];
+    const wp = cronoWPs[SEQ[S.seqIdx]];
     const d = distM(lat, lon, wp.lat, wp.lon);
     const r = wp.radio || CT.meta.radio;
     document.getElementById('prox-ring').style.display = 'block';
@@ -427,7 +455,7 @@ function triggerStart() {
     }
   }, 100);
   document.getElementById('reset-btn').style.display = 'block';
-  const nextWP = CT.waypoints[SEQ[1]];
+  const nextWP = cronoWPs[SEQ[1]];
   showToast('🟢', 'INICIO', '00:00.0', 'Cronómetro iniciado', 'normal');
   SC_Audio.speak(_nombre
     ? `${_nombre}, cronómetro iniciado. Primer parcial en ${nextWP.name}.`
@@ -445,7 +473,7 @@ function triggerSplit() {
   S.seqIdx++;
   S.triggered = false;
   markSplitNext(S.seqIdx);
-  const wp = CT.waypoints[wpIdx];
+  const wp = cronoWPs[wpIdx];
   const vozExtra = wp.voz ? ` ${wp.voz}` : '';
   showToast('⏱', `PARCIAL ${splitNum} — ${wp.name}`, fmtS(lap), `Acum: ${fmtS(elapsed)}`, 'normal');
   SC_Audio.speak(`Llevas ${fmtVoz(elapsed)}.${vozExtra} Segmento ${fmtVoz(lap)}.`, true);
@@ -492,7 +520,7 @@ function triggerFinish() {
       wpIdx: s.wpIdx,
       elapsed: s.elapsed,
       lap: s.lap,
-      name: CT.waypoints[s.wpIdx]?.name || '',
+      name: cronoWPs[s.wpIdx]?.name || '',
     })),
     track: gpsTrack.slice(),
     gps_inicio: gpsInicio || Date.now(),
@@ -552,13 +580,13 @@ function showResult(totalMs) {
   // Tabla de splits
   const cont = document.getElementById('rs-splits');
   cont.innerHTML = '';
-  const startWP = CT.waypoints[0];
+  const startWP = cronoWPs[0];
   const r0 = document.createElement('div');
   r0.className = 'rs-row';
   r0.innerHTML = `<div class="rs-idx" style="color:var(--green)">S</div><div class="rs-info"><div class="rs-wp-name" style="color:var(--green)">${startWP.name}</div><div class="rs-type">Punto de salida</div></div><div class="rs-times"><div class="rs-lap" style="color:var(--green)">00:00.0</div><div class="rs-accum">acum: 00:00.0</div></div>`;
   cont.appendChild(r0);
   S.splits.forEach((s, i) => {
-    const wp = CT.waypoints[s.wpIdx];
+    const wp = cronoWPs[s.wpIdx];
     const isLast = i === S.splits.length - 1;
     const row = document.createElement('div');
     row.className = 'rs-row';
@@ -724,7 +752,7 @@ window.shareResult = function () {
   if (_nombre) txt += `👤 *${_nombre}*\n`;
   txt += `⏱ *Tiempo total: ${fmt(total)}*\n📅 ${fecha}\n\n`;
   S.splits.forEach((s, i) => {
-    const wp = CT.waypoints[s.wpIdx];
+    const wp = cronoWPs[s.wpIdx];
     const isLast = i === S.splits.length - 1;
     txt += `${isLast ? '🏆' : '📍'} ${wp.name}: *${fmtS(s.lap)}* (acum ${fmtS(s.elapsed)})\n`;
   });
@@ -789,7 +817,7 @@ window.shareResult = function () {
     ctx.globalAlpha = .45;
     ctx.stroke();
     ctx.globalAlpha = 1;
-    CT.waypoints.forEach(wp => {
+    cronoWPs.forEach(wp => {
       ctx.beginPath();
       ctx.arc(tx(wp.lon), ty(wp.lat), 3.5, 0, Math.PI * 2);
       ctx.fillStyle = wp.type === 'start' ? 'rgba(0,255,65,.8)' : wp.type === 'finish' ? 'rgba(255,214,0,.7)' : 'rgba(255,107,0,.6)';

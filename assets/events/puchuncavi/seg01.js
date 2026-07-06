@@ -16,6 +16,7 @@ const CT = {
   },
   waypoints: [
 
+    { id:-1, name:'PUNTO 0', sub:'Ubícate aquí · entra en movimiento hacia INICIO', type:'staging', lat:-32.70835352368822, lon:-71.34740053390672, radio:30, color:'#ffd600' },
     { id:0, name:'INICIO', sub:'Largada · DH Puchuncaví', type:'start', lat:-32.70848690316322, lon:-71.34847100571756, radio:45, color:'#00ff41' },
     { id:1, name:'CHECKPOINT 1', sub:'Parcial 1', type:'split', lat:-32.70769247448431, lon:-71.3508129475962, radio:45, color:'#ff6b00' },
     { id:2, name:'CHECKPOINT 2', sub:'Parcial 2', type:'split', lat:-32.70482194988812, lon:-71.35610724370481, radio:45, color:'#ff6b00' },
