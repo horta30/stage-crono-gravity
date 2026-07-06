@@ -93,7 +93,7 @@ const lmap = L.map('leaflet-map', {
   touchRotate: true,
   rotateControl: false,
 });
-let currentTile = L.tileLayer(TILES.satellite, { maxZoom: 19, maxNativeZoom: 19 }).addTo(lmap);
+let currentTile = L.tileLayer(TILES.osm, { maxZoom: 19, maxNativeZoom: 19 }).addTo(lmap);
 L.polyline(CT.track, { color: 'rgba(0,255,65,.1)', weight: 20 }).addTo(lmap);
 const routeLine = L.polyline(CT.track, { color: _accentColor, weight: 3.5, opacity: .9 }).addTo(lmap);
 const doneLine = L.polyline([CT.track[0]], { color: 'rgba(255,255,255,.35)', weight: 5 }).addTo(lmap);
@@ -292,7 +292,8 @@ window.initGPS = function () {
   SC_GPS.start(onPos, onPosErr);
   SC_WakeLock.request();
   // Leaflet necesita recalcular el tamaño del contenedor al cargar sin splash
-  setTimeout(() => lmap.invalidateSize(), 100);
+  setTimeout(() => lmap.invalidateSize(true), 50);
+  setTimeout(() => lmap.invalidateSize(true), 400);
   document.getElementById('map').addEventListener('click', function unlockAudio() {
     SC_Audio.unlock();
   }, { once: true });
