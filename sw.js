@@ -1,4 +1,4 @@
-const CACHE = 'stage-crono-gravity-v10';
+const CACHE = 'stage-crono-gravity-v11';
 const ASSETS = [
   './',
   './index.html',

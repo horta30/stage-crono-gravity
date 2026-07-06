@@ -93,10 +93,18 @@ const lmap = L.map('leaflet-map', {
   touchRotate: true,
   rotateControl: false,
 });
-let currentTile = L.tileLayer(TILES.osm, { maxZoom: 19, maxNativeZoom: 19 }).addTo(lmap);
 L.polyline(CT.track, { color: 'rgba(0,255,65,.1)', weight: 20 }).addTo(lmap);
 const routeLine = L.polyline(CT.track, { color: _accentColor, weight: 3.5, opacity: .9 }).addTo(lmap);
 const doneLine = L.polyline([CT.track[0]], { color: 'rgba(255,255,255,.35)', weight: 5 }).addTo(lmap);
+let currentTile;
+// Diferir tiles al evento load para que el layout CSS esté listo
+window.addEventListener('load', function initTiles() {
+  lmap.invalidateSize(true);
+  currentTile = L.tileLayer(TILES.osm, { maxZoom: 19, maxNativeZoom: 19 }).addTo(lmap);
+  lmap.fitBounds(L.latLngBounds(CT.track), { padding: [40, 40] });
+  routeLine.bringToFront();
+  doneLine.bringToFront();
+});
 
 // Dibujar marcadores de cronometraje (sin staging)
 cronoWPs.forEach(wp => {
@@ -123,8 +131,6 @@ if (stagingWP) {
     .bindPopup('<b>PUNTO 0</b><br>Ubícate aquí y entra en movimiento hacia INICIO')
     .addTo(lmap);
 }
-lmap.fitBounds(L.latLngBounds(CT.track), { padding: [40, 40] });
-
 const TILE_OPTS = {
   topo:      { maxZoom: 19, maxNativeZoom: 17 },
   satellite: { maxZoom: 19, maxNativeZoom: 19 },
@@ -291,9 +297,6 @@ window.initGPS = function () {
   document.getElementById('gps-dot').className = 'gps-dot searching';
   SC_GPS.start(onPos, onPosErr);
   SC_WakeLock.request();
-  // Leaflet necesita recalcular el tamaño del contenedor al cargar sin splash
-  setTimeout(() => lmap.invalidateSize(true), 50);
-  setTimeout(() => lmap.invalidateSize(true), 400);
   document.getElementById('map').addEventListener('click', function unlockAudio() {
     SC_Audio.unlock();
   }, { once: true });
