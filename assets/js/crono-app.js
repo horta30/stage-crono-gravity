@@ -291,9 +291,10 @@ window.initGPS = function () {
   document.getElementById('gps-dot').className = 'gps-dot searching';
   SC_GPS.start(onPos, onPosErr);
   SC_WakeLock.request();
+  // Leaflet necesita recalcular el tamaño del contenedor al cargar sin splash
+  setTimeout(() => lmap.invalidateSize(), 100);
   document.getElementById('map').addEventListener('click', function unlockAudio() {
     SC_Audio.unlock();
-    document.getElementById('map').removeEventListener('click', unlockAudio);
   }, { once: true });
 })();
 
