@@ -84,6 +84,10 @@ const TILES = {
   satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
   osm: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 };
+// Dar alto explícito al container antes de que Leaflet lo mida
+const _mapEl = document.getElementById('map');
+_mapEl.style.height = (window.innerHeight - _mapEl.getBoundingClientRect().top) + 'px';
+
 const lmap = L.map('leaflet-map', {
   center: [cronoWPs[0].lat, cronoWPs[0].lon],
   zoom: 15,
