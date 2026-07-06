@@ -61,9 +61,10 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--white);padding:24px 1
 .stat{flex:1;text-align:center;padding:6px 4px;background:rgba(0,0,0,.25);border-radius:2px;}
 .stat-val{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--white);}
 .stat-lbl{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--grey);}
-.stage-cta{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--border);}
-.stage-btn{background:var(--accent);color:#000;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:.1em;padding:7px 12px;border:none;border-radius:2px;cursor:pointer;}
+.stage-cta{display:flex;justify-content:flex-end;align-items:center;padding-top:8px;}
 .stage-status{font-size:10px;letter-spacing:.15em;color:var(--green);}
+.stage-launch-btn{display:block;width:100%;margin-top:12px;background:var(--accent);color:#000;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.08em;padding:18px 0;text-align:center;text-decoration:none;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));transition:opacity .15s;}
+.stage-launch-btn:active{opacity:.75;}
 
 /* Nota previa al cronómetro */
 .pre-note{background:rgba(255,214,0,.05);border:1px solid rgba(255,214,0,.2);border-radius:2px;padding:11px 13px;margin-bottom:14px;font-size:11px;line-height:1.6;color:rgba(255,214,0,.85);}
@@ -174,7 +175,7 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--white);padding:24px 1
         ? `<div class="stat"><div class="stat-val">${stage.parciales}</div><div class="stat-lbl">Parciales</div></div>`
         : `<div class="stat"><div class="stat-val">DH</div><div class="stat-lbl">Modalidad</div></div>`;
       return `
-        <a class="stage-card" href="./crono.html?event=${ev.slug}&stage=${stage.numero}">
+        <div class="stage-card">
           <div class="stage-header">
             <div>
               <div class="stage-name">${escapeHtml(stage.nombre.toUpperCase())}</div>
@@ -189,10 +190,12 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--white);padding:24px 1
             <div class="stat"><div class="stat-val">${stage.modalidad}</div><div class="stat-lbl">Tipo</div></div>
           </div>
           <div class="stage-cta">
-            <button class="stage-btn">▶ INICIAR</button>
             ${statusHtml}
           </div>
-        </a>
+          <a class="stage-launch-btn" href="./crono.html?event=${ev.slug}&stage=${stage.numero}&autostart=1">
+            ▶ ACTIVAR CRONÓMETRO
+          </a>
+        </div>
       `;
     }).join('');
 

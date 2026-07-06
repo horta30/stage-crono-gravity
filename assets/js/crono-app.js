@@ -278,19 +278,24 @@ window.initGPS = function () {
     alert('GPS no disponible en este navegador.');
     return;
   }
-
-  // Tap del usuario: aprovechamos para activar audio y wake lock
-  // (ambos requieren gesto del usuario para inicializarse).
   SC_Audio.unlock();
   SC_WakeLock.request();
-
   const btn = document.getElementById('splash-btn');
-  btn.textContent = 'Conectando...';
-  btn.disabled = true;
+  if (btn) { btn.textContent = 'Conectando...'; btn.disabled = true; }
   document.getElementById('gps-dot').className = 'gps-dot searching';
-
   SC_GPS.start(onPos, onPosErr);
 };
+
+// Autostart: si viene ?autostart=1 desde index, saltarse el splash
+(function () {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('autostart') === '1') {
+    document.getElementById('splash').classList.add('hidden');
+    document.getElementById('gps-dot').className = 'gps-dot searching';
+    SC_GPS.start(onPos, onPosErr);
+    SC_WakeLock.request();
+  }
+})();
 
 window.toggleGPS = function () {
   if (!SC_GPS.isActive()) {
