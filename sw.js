@@ -17,6 +17,7 @@ const ASSETS = [
   './assets/events/las_varas/seg01.js',
   './assets/events/las_varas/seg02.js',
   './assets/events/puchuncavi/seg01.js',
+  './assets/stage-crono-logo.png',
   './icons/icon-192.png',
   './icons/icon-512.png',
 ];
