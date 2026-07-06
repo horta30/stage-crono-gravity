@@ -244,7 +244,8 @@ function makeUserIcon() {
 
 const SEQ = cronoWPs.map((_, i) => i); // [0, 1, 2, ..., n] sobre cronoWPs
 const S = {
-  phase: 'init', // 'init' | 'waiting' | 'running' | 'finished'
+  phase: 'init', // 'init' | 'locked' | 'waiting' | 'running' | 'finished'
+  stagingDone: false, // true una vez que el rider pasó por el PUNTO 0
   seqIdx: 0,
   startTime: null,
   splits: [],
@@ -320,15 +321,16 @@ function onPos(c) {
   if (firstFix) {
     firstFix = false;
     document.getElementById('splash').classList.add('hidden');
-    S.phase = 'waiting';
     lmap.setView([lat, lon], 16);
     if (stagingWP) {
+      S.phase = 'locked';
       document.getElementById('chrono-label').textContent = 'Dirígete al PUNTO 0 🚵';
       const msg = _nombre
-        ? `Atención ${_nombre}. Dirígete al Punto cero marcado en el mapa. Desde ahí entra en movimiento hacia el inicio.`
-        : 'Atención. Dirígete al Punto cero marcado en el mapa. Desde ahí entra en movimiento hacia el inicio.';
+        ? `Atención ${_nombre}. Primero dirígete al Punto cero marcado en el mapa. El cronómetro se armará desde ahí.`
+        : 'Atención. Primero dirígete al Punto cero marcado en el mapa. El cronómetro se armará desde ahí.';
       setTimeout(() => SC_Audio.speak(msg, true), 700);
     } else {
+      S.phase = 'waiting';
       document.getElementById('chrono-label').textContent = 'Dirígete al INICIO';
       const msg = _nombre
         ? `Atención ${_nombre}. Cronómetro activa al pasar el inicio. Pasa en movimiento.`
@@ -348,12 +350,14 @@ function onPos(c) {
   else document.getElementById('compass-needle').style.transform = `rotate(${lastBearing}deg)`;
   if (followMode) lmap.panTo([lat, lon], { animate: true, duration: .25, easeLinearity: 1 });
 
-  // Brújula: apunta al PUNTO 0 si existe y está lejos, luego al INICIO
-  if (S.phase === 'waiting' || S.phase === 'init') {
+  // Brújula: locked → apunta PUNTO 0; waiting → apunta INICIO
+  if (S.phase === 'locked' || S.phase === 'waiting' || S.phase === 'init') {
     const compass = document.getElementById('inicio-compass');
     compass.classList.add('show');
-    const target = (stagingWP && distM(lat, lon, stagingWP.lat, stagingWP.lon) > stagingWP.radio)
-      ? stagingWP : cronoWPs[0];
+    const target = (S.phase === 'locked' && stagingWP)
+      ? stagingWP
+      : (stagingWP && distM(lat, lon, stagingWP.lat, stagingWP.lon) > stagingWP.radio && S.phase === 'waiting')
+        ? stagingWP : cronoWPs[0];
     const b = bearingTo(lat, lon, target.lat, target.lon);
     const rel = ((b - lastBearing) + 360) % 360;
     document.getElementById('ic-arrow').style.transform = `rotate(${rel}deg)`;
@@ -378,7 +382,7 @@ function onPos(c) {
   });
   if (minI > 1) doneLine.setLatLngs(CT.track.slice(0, minI + 1));
 
-  if (S.phase === 'waiting' || S.phase === 'running') processPos(lat, lon);
+  if (S.phase === 'locked' || S.phase === 'waiting' || S.phase === 'running') processPos(lat, lon);
 }
 
 function onPosErr() {
@@ -392,6 +396,22 @@ function onPosErr() {
 
 function processPos(lat, lon) {
   if (S.phase === 'finished') return;
+
+  // Fase LOCKED: esperando que el rider toque el PUNTO 0 antes de armar el crono
+  if (S.phase === 'locked' && stagingWP) {
+    const d = distM(lat, lon, stagingWP.lat, stagingWP.lon);
+    if (d <= stagingWP.radio && !S.stagingDone) {
+      S.stagingDone = true;
+      S.phase = 'waiting';
+      document.getElementById('chrono-label').textContent = 'Dirígete al INICIO';
+      const msg = _nombre
+        ? `¡Listo ${_nombre}! Cronómetro armado. Ahora pasa el inicio en movimiento.`
+        : '¡Listo! Cronómetro armado. Ahora pasa el inicio en movimiento.';
+      SC_Audio.speak(msg, true);
+      showToast('🚵', 'PUNTO 0', '✓', 'Cronómetro armado — ve al INICIO', 'normal');
+    }
+    return;
+  }
 
   // Fase WAITING: esperando que el rider cruce el INICIO
   if (S.phase === 'waiting') {
@@ -688,8 +708,10 @@ window.resetSession = function () {
   unlockRotation();
   clearInterval(S.timerInterval);
   const hist = S.history;
+  const resetPhase = stagingWP ? 'locked' : 'waiting';
   Object.assign(S, {
-    phase: 'waiting',
+    phase: resetPhase,
+    stagingDone: false,
     seqIdx: 0,
     startTime: null,
     splits: [],
@@ -701,7 +723,7 @@ window.resetSession = function () {
   S.history = hist;
   document.getElementById('chrono').textContent = '00:00.0';
   document.getElementById('chrono').className = 'waiting';
-  document.getElementById('chrono-label').textContent = 'Dirígete al INICIO';
+  document.getElementById('chrono-label').textContent = stagingWP ? 'Dirígete al PUNTO 0 🚵' : 'Dirígete al INICIO';
   document.getElementById('reset-btn').style.display = 'none';
   document.getElementById('result-screen').classList.remove('show');
   document.getElementById('toast').classList.remove('show');
@@ -715,8 +737,10 @@ window.cancelRun = function () {
   unlockRotation();
   clearInterval(S.timerInterval);
   const hist = S.history;
+  const resetPhase = stagingWP ? 'locked' : 'waiting';
   Object.assign(S, {
-    phase: 'waiting',
+    phase: resetPhase,
+    stagingDone: false,
     seqIdx: 0,
     startTime: null,
     splits: [],
@@ -728,7 +752,7 @@ window.cancelRun = function () {
   S.history = hist;
   document.getElementById('chrono').textContent = '00:00.0';
   document.getElementById('chrono').className = 'waiting';
-  document.getElementById('chrono-label').textContent = 'Dirígete al INICIO';
+  document.getElementById('chrono-label').textContent = stagingWP ? 'Dirígete al PUNTO 0 🚵' : 'Dirígete al INICIO';
   document.getElementById('reset-btn').style.display = 'none';
   document.getElementById('toast').classList.remove('show');
   document.querySelectorAll('.split-col').forEach(el => {
