@@ -211,16 +211,12 @@ body{display:flex;flex-direction:column;font-family:'Barlow Condensed',sans-seri
 </head>
 <body>
 
-<!-- ── SPLASH (pantalla previa al cronómetro) ─────────────── -->
-<div id="splash">
+<!-- splash eliminado: GPS arranca automáticamente al cargar -->
+<div id="splash" style="display:none">
   <canvas id="splash-canvas"></canvas>
   <div class="splash-inner">
     <div class="splash-stage-badge" id="splash-stage-badge">STAGE 1</div>
     <div class="splash-logo"><span id="splash-stage-name"></span></div>
-    <button class="splash-btn" id="splash-btn" onclick="initGPS()">
-      <div class="btn-dot"></div>ACTIVAR CRONÓMETRO
-    </button>
-    <div class="splash-note">Activa GPS · Audio · Pantalla encendida</div>
     <a class="splash-back" id="splash-back" href="./index.html">← Volver a stages</a>
   </div>
 </div>

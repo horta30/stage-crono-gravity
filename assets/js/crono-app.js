@@ -280,21 +280,21 @@ window.initGPS = function () {
   }
   SC_Audio.unlock();
   SC_WakeLock.request();
-  const btn = document.getElementById('splash-btn');
-  if (btn) { btn.textContent = 'Conectando...'; btn.disabled = true; }
   document.getElementById('gps-dot').className = 'gps-dot searching';
   SC_GPS.start(onPos, onPosErr);
 };
 
-// Autostart: si viene ?autostart=1 desde index, saltarse el splash
-(function () {
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('autostart') === '1') {
-    document.getElementById('splash').classList.add('hidden');
-    document.getElementById('gps-dot').className = 'gps-dot searching';
-    SC_GPS.start(onPos, onPosErr);
-    SC_WakeLock.request();
-  }
+// GPS arranca automáticamente al cargar la página.
+// Audio se desbloquea en el primer tap del usuario sobre el mapa.
+(function autoStart() {
+  if (!SC_GPS.isAvailable()) return;
+  document.getElementById('gps-dot').className = 'gps-dot searching';
+  SC_GPS.start(onPos, onPosErr);
+  SC_WakeLock.request();
+  document.getElementById('map').addEventListener('click', function unlockAudio() {
+    SC_Audio.unlock();
+    document.getElementById('map').removeEventListener('click', unlockAudio);
+  }, { once: true });
 })();
 
 window.toggleGPS = function () {
@@ -330,7 +330,6 @@ function onPos(c) {
 
   if (firstFix) {
     firstFix = false;
-    document.getElementById('splash').classList.add('hidden');
     lmap.setView([lat, lon], 16);
     if (stagingWP) {
       S.phase = 'locked';
