@@ -766,6 +766,14 @@ window.resetSession = function () {
   });
 };
 
+window.skipLocked = function () {
+  S.stagingDone = true;
+  S.phase = 'waiting';
+  document.getElementById('locked-screen').classList.add('hidden');
+  document.getElementById('chrono-label').textContent = 'Dirígete al INICIO';
+  SC_Audio.speak('Cronómetro armado. Dirígete al inicio.', true);
+};
+
 window.cancelRun = function () {
   unlockRotation();
   clearInterval(S.timerInterval);

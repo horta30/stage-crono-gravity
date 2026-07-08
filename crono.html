@@ -215,6 +215,7 @@ body{display:flex;flex-direction:column;font-family:'Barlow Condensed',sans-seri
 .lk-arrow{font-size:96px;line-height:1;display:inline-block;transition:transform .4s ease;color:#ffd600;}
 .lk-dist{font-family:'Bebas Neue',sans-serif;font-size:42px;color:var(--white);letter-spacing:.04em;margin-top:8px;}
 .lk-gps-note{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.25);}
+.lk-skip{margin-top:28px;background:transparent;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.3);font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:.15em;text-transform:uppercase;padding:10px 20px;cursor:pointer;}
 
 .leaflet-control-zoom,.leaflet-control-attribution{display:none;}
 @keyframes uPulse{0%,100%{transform:scale(1);opacity:.6;}50%{transform:scale(2.4);opacity:0;}}
@@ -235,6 +236,7 @@ body{display:flex;flex-direction:column;font-family:'Barlow Condensed',sans-seri
   </div>
   <div class="lk-dist" id="lk-dist">Buscando GPS…</div>
   <div class="lk-gps-note" id="lk-gps-note">● Conectando</div>
+  <button class="lk-skip" onclick="skipLocked()">Ya estoy en posición →</button>
 </div>
 
 <!-- ── TOPBAR ─────────────────────────────────────────────── -->
